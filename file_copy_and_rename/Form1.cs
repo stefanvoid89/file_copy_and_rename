@@ -14,15 +14,14 @@ namespace file_copy_and_rename
         static Config config = utils.fetch_configuration();
         DateTimePicker dtp;
         TextBox tb;
-        
 
-
+        DataSet ds_scanned;
 
 
         public Form1()
         {
             InitializeComponent();
-            this.WindowState = FormWindowState.Maximized;
+            WindowState = FormWindowState.Maximized;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -35,45 +34,35 @@ namespace file_copy_and_rename
                 {
                     DataTable companies = utils.fetch_companies_data(config);
                     DataTable types = utils.fetch_types_data(config);
+                    DataTable companies_scann = companies.Copy();
 
+                    
+
+
+                    DataRow all_companies = companies_scann.NewRow();
+
+                    all_companies["anId"] = 0;
+                    all_companies["acDataBaseName"] = "SVA PREDUZECA";
+
+                    companies_scann.Rows.InsertAt(all_companies, 0);
 
                     cb_company_name.DataSource = companies;
                     cb_company_name.ValueMember = "anId";
                     cb_company_name.DisplayMember = "acDataBaseName";
 
 
+                    cb_company_name_scann.DataSource = companies_scann;
+                    cb_company_name_scann.ValueMember = "anId";
+                    cb_company_name_scann.DisplayMember = "acDataBaseName";
+
+
                     cb_type.DataSource = types;
                     cb_type.ValueMember = "anId";
-                    cb_type.DisplayMember = "acTypeDoc";
+                    cb_type.DisplayMember = "acTypeDocName";
 
+                    // predifinisana vrednost
+                    load_and_fill_scanned_grids(0);
 
-
-                    DataTable scanned_data = utils.fetch_list_all(config);
-                    dgv_scanned.DataSource = scanned_data;
-
-                    dgv_scanned.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                    dgv_scanned.AutoResizeColumns();
-                    dgv_scanned.AllowUserToResizeColumns = true;
-                    dgv_scanned.AllowUserToOrderColumns = true;
-
-                    
-                    dgv_scanned.Columns[0].ReadOnly = true;
-                    dgv_scanned.Columns[1].ReadOnly = true;
-                    dgv_scanned.Columns[2].ReadOnly = true;
-                    dgv_scanned.Columns[5].ReadOnly = true;
-                    dgv_scanned.Columns[6].ReadOnly = true;
-
-
-                    dgv_scanned.Columns[0].Width = 20;
-                    dgv_scanned.Columns[1].Width = 100;
-                    dgv_scanned.Columns[2].Width = 70;
-                    dgv_scanned.Columns[3].Width = 300;
-                    dgv_scanned.Columns[4].Width = 200;
-                    dgv_scanned.Columns[5].Width = 70;
-                    dgv_scanned.Columns[6].Width = 300;
-                    
-
-                    dgv_scanned.KeyUp += new KeyEventHandler(tb_KeyDown);
 
                 }
 
@@ -92,23 +81,122 @@ namespace file_copy_and_rename
 
         }
 
+        private void load_and_fill_scanned_grids(int database_id) {
+
+            dgv_scanned.DataSource = null;
+            dgv_scanned_item.DataSource = null;
+
+            ds_scanned = new DataSet();
+            ds_scanned.Tables.Add(utils.fetch_list_all(config, database_id));
+            ds_scanned.Tables.Add(utils.fetch_list_all_item(config, database_id));
+
+            DataRelation relation = new DataRelation("pc_relation", ds_scanned.Tables[0].Columns[2], ds_scanned.Tables[1].Columns[2]);
+            ds_scanned.Relations.Add(relation);
+
+
+            dgv_scanned.DataSource = ds_scanned.Tables[0];
+
+            if (dgv_scanned.Columns.Contains("Delete"))  dgv_scanned.Columns.Remove("Delete");
+                DataGridViewButtonColumn delete_scanned = new DataGridViewButtonColumn();
+                delete_scanned.UseColumnTextForButtonValue = true;
+                delete_scanned.Name = "Delete";
+                delete_scanned.Text = "Obrisi zapis";
+
+                dgv_scanned.Columns.Insert(ds_scanned.Tables[0].Columns.Count, delete_scanned);
+            
+
+           
+            dgv_scanned_item.DataMember = "pc_relation";
+            dgv_scanned_item.DataSource = ds_scanned.Tables[0];
+
+            dgv_scanned_item.AllowUserToAddRows = false;
+
+            if (dgv_scanned_item.Columns.Contains("Delete")) dgv_scanned_item.Columns.Remove("Delete");
+            
+                DataGridViewButtonColumn delete_scanned_item = new DataGridViewButtonColumn();
+                delete_scanned_item.UseColumnTextForButtonValue = true;
+                delete_scanned_item.Name = "Delete";
+                delete_scanned_item.Text = "Obrisi zapis";
+                dgv_scanned_item.Columns.Insert(ds_scanned.Tables[1].Columns.Count, delete_scanned_item);
+            
+
+
+            dgv_scanned.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            // dgv_scanned.AutoResizeColumns();
+            dgv_scanned.AllowUserToResizeColumns = true;
+            dgv_scanned.AllowUserToOrderColumns = true;
+
+
+            dgv_scanned.Columns[0].Visible = false;
+            dgv_scanned.Columns[1].Visible = false;
+            dgv_scanned.Columns[2].ReadOnly = true;
+            dgv_scanned.Columns[3].ReadOnly = true;
+            //dgv_scanned.Columns[6].ReadOnly = true;
+
+
+            dgv_scanned_item.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            // dgv_scanned_item.AutoResizeColumns();
+            dgv_scanned_item.AllowUserToResizeColumns = true;
+            dgv_scanned_item.AllowUserToOrderColumns = true;
+
+
+            dgv_scanned_item.Columns[0].Visible = false;
+            dgv_scanned_item.Columns[1].Visible = false;
+            dgv_scanned_item.Columns[2].ReadOnly = true;
+            dgv_scanned_item.Columns[3].ReadOnly = true;
+            dgv_scanned_item.Columns[4].ReadOnly = true;
+
+
+
+            dgv_scanned.Columns[2].Width = 200;
+            dgv_scanned.Columns[3].Width = 150;
+            dgv_scanned.Columns[4].Width = 200;
+            dgv_scanned.Columns[5].Width = 350;
+            dgv_scanned.Columns[6].Width = 150;
+
+
+            dgv_scanned.Columns[3].DefaultCellStyle.Format = "dd.MM.yyyy";
+            dgv_scanned.Columns[6].DefaultCellStyle.Format = "dd.MM.yyyy";
+
+            dgv_scanned_item.Columns[4].DefaultCellStyle.Format = "dd.MM.yyyy";
+
+
+
+            dgv_scanned_item.Columns[2].Width = 200;
+            dgv_scanned_item.Columns[3].Width = 300;
+            dgv_scanned_item.Columns[4].Width = 150;
+            dgv_scanned_item.Columns[5].Width = 350;
+
+            dgv_scanned.KeyUp += new KeyEventHandler(tb_KeyDown);
+        }
+
+
+
+
+
         private void btn_populate_grid_Click(object sender, EventArgs e)
         {
             int database_id = int.Parse(cb_company_name.SelectedValue.ToString());
             int type_id = int.Parse(cb_type.SelectedValue.ToString());
-            //  string list_of_files = utils.find_all_files(config);
-
-            string parent = "F";
-
-            if (checkBox2.Checked == true) parent = "T";
 
 
-            DataTable files = utils.fetch_list(config, database_id, type_id,parent);
+            string isGrouped = "F";
+
+            if (checkBox2.Checked == true) isGrouped = "T";
+
+            string reg_no = null;
+
+            if (rb_add.Checked && cb_regno.SelectedValue != null) reg_no = cb_regno.SelectedValue.ToString();
+
+
+            DataTable files = utils.fetch_list(config, database_id, type_id, isGrouped, reg_no);
             dgv_files.DataSource = files;
             dgv_files.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgv_files.AutoResizeColumns();
             dgv_files.AllowUserToResizeColumns = true;
             dgv_files.AllowUserToOrderColumns = true;
+            dgv_files.Columns["anNo"].Visible = false;
+            dgv_files.Columns["anRegNo"].Visible = false;
 
             if (files != null && files.Rows.Count > 0)
             {
@@ -140,8 +228,8 @@ namespace file_copy_and_rename
                     pictureBox1.Image = null;
                 }
 
-                DataTable scanned_data = utils.fetch_list_all(config);
-                dgv_scanned.DataSource = scanned_data;
+                //int database_id = int.Parse(cb_company_name_scann.SelectedValue.ToString());
+                load_and_fill_scanned_grids(database_id);
 
             }
             catch (Exception ex)
@@ -226,15 +314,52 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 6 && e.RowIndex > -1)
+            if (e.ColumnIndex == 7 && e.RowIndex > -1)
             {
-                string id = dgv_scanned.Rows[e.RowIndex].Cells[6].Value.ToString();
-                //Image img = utils.load_image_from_db(config, id);
-                //pictureBox2.Image = new Bitmap(img,100,100);
-                
-            }
+                int index = dgv_scanned.CurrentCell.RowIndex;
+                string reg_no = dgv_scanned.Rows[index].Cells["Zaglavlje"].Value.ToString();
 
-            if (e.ColumnIndex == 5 && e.RowIndex > -1)
+                //string file = dgv_scanned.Rows[index].Cells[6].Value.ToString();
+                //string company = dgv_scanned.Rows[index].Cells[1].Value.ToString();
+                //string path = Path.Combine(config.Dest_dir, company, file);
+
+                //if (File.Exists(path)) MessageBox.Show("Ne mozete obristati zapis pre brisanja skeniranog dokumenta.");
+
+                if (utils.reg_item_exists(config, reg_no)) MessageBox.Show("Ne mozete obristati zapis, postoje vezana dokumenta.");
+
+
+                else
+                {
+
+                    try
+                    {
+                        utils.delete_scan(config, reg_no);
+                        dgv_scanned.Rows.RemoveAt(index);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                    finally {
+                        //int database_id = int.Parse(cb_company_name_scann.SelectedValue.ToString());
+                        //load_and_fill_scanned_grids(database_id);
+                    }
+                    
+
+
+
+                }
+            }
+            //{
+            //    string id = dgv_scanned.Rows[e.RowIndex].Cells[6].Value.ToString();
+            //    //Image img = utils.load_image_from_db(config, id); // izbacuje se zbog mesta u bazi i zbog mesta na formi
+            //    //pictureBox2.Image = new Bitmap(img,100,100);
+
+            //}
+
+
+            if (e.ColumnIndex == 6 && e.RowIndex > -1)
             {
                 DateTime date;
                 dtp = new DateTimePicker();
@@ -258,15 +383,15 @@ namespace file_copy_and_rename
                 dtp.TextChanged += new EventHandler(dtp_OnTextChange);
             }
 
-            if (e.ColumnIndex == 3 && e.RowIndex > -1)
+            if (e.ColumnIndex == 5 && e.RowIndex > -1)
             {
 
                 //MessageBox.Show("kutija");
                 tb = new TextBox();
                 tb.Visible = false;
                 tb.Text = (string)dgv_scanned.CurrentCell.Value;
-
                 tb.Multiline = true;
+                //tb.AcceptsReturn = true;           
                 tb.ScrollBars = ScrollBars.Vertical;
 
                 // tb.Text = "";
@@ -274,7 +399,7 @@ namespace file_copy_and_rename
                 dgv_scanned.Controls.Add(tb);
 
                 Rectangle Rectangle = dgv_scanned.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
-                tb.Size = new Size(300,300);
+                tb.Size = new Size(350,100);
                 tb.Location = new Point(Rectangle.X, Rectangle.Y);
                 tb.Visible = true;
                 tb.Focus();
@@ -353,12 +478,12 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellLeave(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 5 && e.RowIndex > -1)
+            if (e.ColumnIndex == 6 && e.RowIndex > -1)
             {
                 if(dtp != null)     dtp.Visible = false;
             }
 
-            if (e.ColumnIndex == 3 && e.RowIndex > -1)
+            if (e.ColumnIndex == 5 && e.RowIndex > -1)
             {
                 if (tb != null) tb.Visible = false;
             }
@@ -369,14 +494,15 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            // MessageBox.Show(dgv_scanned.Rows[e.RowIndex].Cells[e.ColumnIndex].Value);
+          //  MessageBox.Show(dgv_scanned.Rows[e.RowIndex].Index.ToString());
 
-            int id = (Int32)dgv_scanned.Rows[e.RowIndex].Cells[0].Value;
+            int id = (int)dgv_scanned.Rows[e.RowIndex].Cells[0].Value;
 
             string column = "";
-            if (e.ColumnIndex == 3) column = "acNote";
+
             if (e.ColumnIndex == 4) column = "acSubject";
-            if (e.ColumnIndex == 5) column = "adDateDoc";
+            if (e.ColumnIndex == 5) column = "acNote";
+            if (e.ColumnIndex == 6) column = "adDateDoc";
 
 
             string value = dgv_scanned.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
@@ -396,8 +522,8 @@ namespace file_copy_and_rename
 
         private void btn_refresh_Click(object sender, EventArgs e)
         {
-            DataTable scanned_data = utils.fetch_list_all(config);
-            dgv_scanned.DataSource = scanned_data;
+            int database_id = int.Parse(cb_company_name_scann.SelectedValue.ToString()) ;
+            load_and_fill_scanned_grids(database_id);
         }
 
         private void btn_export_Click(object sender, EventArgs e)
@@ -407,61 +533,143 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 6 && e.RowIndex > -1)
+       
+        }
+
+  
+        private void cb_company_name_Enter(object sender, EventArgs e)
+        {
+            btn_copy.Enabled = false;
+        }
+
+        private void cb_type_Enter(object sender, EventArgs e)
+        {
+            btn_copy.Enabled = false;
+        }
+
+        private void checkBox2_Enter(object sender, EventArgs e)
+        {
+            btn_copy.Enabled = false;
+        }
+
+        private void rb_new_CheckedChanged(object sender, EventArgs e)
+        {
+
+            cb_type.Enabled = true;
+            checkBox2.Enabled = true;
+            cb_regno.Enabled = false;
+            btn_copy.Enabled = false;
+
+            cb_regno.DataSource = null;
+
+        }
+
+        private void rb_add_CheckedChanged(object sender, EventArgs e)
+        {
+            cb_type.Enabled = false;
+            checkBox2.Enabled = false;
+            cb_regno.Enabled = true;
+            btn_copy.Enabled = false;
+
+
+            DataTable regs = utils.fetch_reg_no_by_companies(config, (int) cb_company_name.SelectedValue);
+            cb_regno.DataSource = regs;
+            cb_regno.ValueMember = "acRegNo";
+            cb_regno.DisplayMember = "acRegNo";
+
+        }
+
+        private void cb_company_name_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            if (((ComboBox)sender).SelectedValue != null && rb_add.Checked) {
+                DataTable regs = utils.fetch_reg_no_by_companies(config, (int)cb_company_name.SelectedValue);
+                cb_regno.DataSource = regs;
+                cb_regno.ValueMember = "acRegNo";
+                cb_regno.DisplayMember = "acRegNo";
+            }
+
+            
+
+        }
+
+        private void cb_regno_Enter(object sender, EventArgs e)
+        {
+            btn_copy.Enabled = false;
+        }
+
+        private void dgv_scanned_item_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            if (e.ColumnIndex == 3 && e.RowIndex > -1)
             {
-                string file = dgv_scanned.Rows[e.RowIndex].Cells[6].Value.ToString();
-                string company = dgv_scanned.Rows[e.RowIndex].Cells[1].Value.ToString();
-               string path = Path.Combine(config.Dest_dir, company,file);
-                
+                string reg_no = dgv_scanned_item.Rows[e.RowIndex].Cells["Zaglavlje"].Value.ToString();
+                string file = dgv_scanned_item.Rows[e.RowIndex].Cells["Dokument"].Value.ToString();
+                string company = utils.get_database_name(config, reg_no);
+                string path = Path.Combine(config.Dest_dir, company, file);
+
                 try
                 {
                     Process.Start(path);
-                }
-                catch (Exception ex) {
-                    MessageBox.Show(ex.Message);
-                }
-
-            }
-        }
-
-        private void dgv_scanned_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
-        {
-
-
-      
-
-
-        }
-
-        private void deleteScanned_Click(object sender, EventArgs e)
-        {
-
-            int index = dgv_scanned.CurrentCell.RowIndex;
-            int id = (Int32)dgv_scanned.Rows[index].Cells[0].Value;
-            string file = dgv_scanned.Rows[index].Cells[6].Value.ToString();
-            string company = dgv_scanned.Rows[index].Cells[1].Value.ToString();
-            string path = Path.Combine(config.Dest_dir, company, file);
-
-            if (File.Exists(path)) MessageBox.Show("Ne mozete obristati zapis pre brisanja skeniranog dokumenta dokumenta.");
-
-
-            else {
-
-                try
-                {
-                    utils.delete_scan(config, id);
-                    dgv_scanned.Rows.RemoveAt(index);
-
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
                 }
 
-                DataTable scanned_data = utils.fetch_list_all(config);
-                dgv_scanned.DataSource = scanned_data;
-
             }
+
+        }
+
+        private void dgv_scanned_item_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            if (e.ColumnIndex == 6 && e.RowIndex > -1)
+            {
+                int index = dgv_scanned_item.CurrentCell.RowIndex;
+                int id = (int)dgv_scanned_item.Rows[e.RowIndex].Cells["anId"].Value;
+                string reg_no = dgv_scanned_item.Rows[e.RowIndex].Cells["Zaglavlje"].Value.ToString();
+
+                string file = dgv_scanned_item.Rows[e.RowIndex].Cells["Dokument"].Value.ToString();
+                string company = utils.get_database_name(config, reg_no);
+                string path = Path.Combine(config.Dest_dir, company, file);
+
+                if (File.Exists(path)) MessageBox.Show("Ne mozete obristati zapis pre brisanja skeniranog dokumenta.");
+
+                else
+                {
+
+                    try
+                    {
+                        utils.delete_scan_item(config, id);
+                        dgv_scanned_item.Rows.RemoveAt(index);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                    finally
+                    {
+                        //int database_id = int.Parse(cb_company_name_scann.SelectedValue.ToString());
+                        //load_and_fill_scanned_grids(database_id);
+                    }
+
+
+
+
+                }
+            }
+
+        }
+
+        private void dgv_scanned_item_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dgv_scanned_item_CellLeave(object sender, DataGridViewCellEventArgs e)
+        {
 
         }
     }

@@ -117,7 +117,7 @@ namespace file_copy_and_rename
             {
                 string connetion_string = get_connection_string(config);
                 using (SqlConnection connection = new SqlConnection(connetion_string))
-                using (SqlCommand command = new SqlCommand("select anId, acTypeDoc from _tTypeDoc ", connection))
+                using (SqlCommand command = new SqlCommand("select anId, acTypeDoc + ' - ' + acTypeDocName as acTypeDocName from _tTypeDoc ", connection))
                 using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                 {
                     data_table = new DataTable();
@@ -136,8 +136,39 @@ namespace file_copy_and_rename
 
 
 
+        static public DataTable fetch_reg_no_by_companies(Config config, int company_id)
+        {
 
-        public static DataTable fetch_list(Config config, int database_id, int type_id, string parent)
+            DataTable data_table = null;
+
+            try
+            {
+                string connetion_string = get_connection_string(config);
+                using (SqlConnection connection = new SqlConnection(connetion_string))
+                using (SqlCommand command = new SqlCommand("select acRegNo from  _Registry where anIdDataBase = @nIdDataBase", connection))
+                {
+                    command.Parameters.AddWithValue("@nIdDataBase", company_id);
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                    {
+                        data_table = new DataTable();
+                        adapter.Fill(data_table);
+                    }
+                }
+
+            }
+
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return data_table;
+
+        }
+
+
+
+        public static DataTable fetch_list(Config config, int database_id, int type_id, string isGrouped, string reg_no)
         {
 
             DataTable files = find_all_files(config);
@@ -146,7 +177,7 @@ namespace file_copy_and_rename
             string connetion_string = get_connection_string(config);
             SqlConnection connection = new SqlConnection(connetion_string);
 
-            using (SqlCommand command = new SqlCommand("_pReturnIdentifiers", connection)
+            using (SqlCommand command = new SqlCommand("_pReturnRegNo", connection)
             {
                 CommandType = CommandType.StoredProcedure
             })
@@ -154,7 +185,9 @@ namespace file_copy_and_rename
                 command.Parameters.AddWithValue("@cFiles", files);
                 command.Parameters.AddWithValue("@nDataBaseId", database_id);
                 command.Parameters.AddWithValue("@nTypeDocId", type_id);
-                command.Parameters.AddWithValue("@nParentDoc", parent);
+                command.Parameters.AddWithValue("@cisGrouped", isGrouped);
+                if (reg_no == null) command.Parameters.AddWithValue("@cRegNo", DBNull.Value);
+                else command.Parameters.AddWithValue("@cRegNo", reg_no);
                 SqlDataAdapter adapter = new SqlDataAdapter(command);
 
                 data_table = new DataTable();
@@ -166,19 +199,26 @@ namespace file_copy_and_rename
         }
 
 
-        public static DataTable fetch_list_all(Config config)
+        public static DataTable fetch_list_all(Config config, int database_id)
         {
 
             DataTable data_table = null;
             string connetion_string = get_connection_string(config);
             SqlConnection connection = new SqlConnection(connetion_string);
 
-            using (SqlCommand command = new SqlCommand("_pReturnScaned", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            }) {
-                SqlDataAdapter adapter = new SqlDataAdapter(command);
+            string sql_query = "SELECT r.[anId] ,r.anRegNo,r.[acRegNo] as [Zaglavlje] ,r.[adDate] as Datum ,r.[acSubject] as Subjekat ,r.[acNote] as Napomena,r.[adDateDoc] as [Datum dokumenta] FROM [_Registry] r inner join _tDataBases d on r.anIdDataBase = d.anId ";
 
+            string filter = " where 1=1 ";
+
+            if (database_id != 0) filter += " and d.anId = " + database_id.ToString();
+
+            sql_query += filter;
+
+            sql_query += " order by d.acDataBaseName,r.[acRegNo]";
+
+            using (SqlCommand command = new SqlCommand(sql_query, connection))
+            {
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
                 data_table = new DataTable();
                 adapter.Fill(data_table);
             }
@@ -186,6 +226,33 @@ namespace file_copy_and_rename
             return data_table;
         }
 
+
+        public static DataTable fetch_list_all_item(Config config, int database_id)
+        {
+
+            DataTable data_table = null;
+            string connetion_string = get_connection_string(config);
+            SqlConnection connection = new SqlConnection(connetion_string);
+
+
+            string sql_query = "select ri.anId,ri.anNo, ri.acRegNo as [Zaglavlje]  ,ri.acRegNoItem as Dokument,ri.adDate as Datum,ri.acNote as Napomena from _RegistryItem ri inner join [_Registry] r on r.acRegNo = ri.acRegNo";
+
+            string filter = " where 1=1 ";
+
+            if (database_id != 0) filter += " and r.anIdDataBase = " + database_id.ToString();
+
+            sql_query += filter;
+
+
+            using (SqlCommand command = new SqlCommand(sql_query, connection))
+            {
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                data_table = new DataTable();
+                adapter.Fill(data_table);
+            }
+
+            return data_table;
+        }
 
 
 
@@ -244,15 +311,16 @@ namespace file_copy_and_rename
 
 
 
-            foreach (DataRow row in files.Rows) {
+            foreach (DataRow row in files.Rows)
+            {
 
-                string old_name = row["Dokument"].ToString();
+                string old_name = row["Skenirani dokument"].ToString();
 
                 string source_file = Path.Combine(source_path, old_name);
 
                 FileInfo file = new FileInfo(source_file);
 
-                if (IsFileLocked(file)) throw new IOException("Fajl " + old_name + " je otvoren! Molim vas zatvorite fajl!"); 
+                if (IsFileLocked(file)) throw new IOException("Fajl " + old_name + " je otvoren! Molim vas zatvorite fajl!");
 
             }
 
@@ -261,11 +329,12 @@ namespace file_copy_and_rename
             foreach (DataRow row in files.Rows)
             {
 
-                string old_name = row["Dokument"].ToString();
-                string new_name = row["Broj"].ToString();
-                int id = int.Parse(row["Brojac"].ToString());
+                string old_name = row["Skenirani dokument"].ToString();
+                string new_name = row["Dokument"].ToString();
                 string extension = row["Tip"].ToString();
                 string parent = row["Zaglavlje"].ToString();
+                int parent_no = int.Parse(row["anRegNo"].ToString());
+                int no = int.Parse(row["anno"].ToString());
 
                 string source_file = Path.Combine(source_path, old_name);
                 string dest_file = Path.Combine(target_path, new_name);
@@ -277,26 +346,26 @@ namespace file_copy_and_rename
                     throw;
                 }
 
-
                 using (SqlConnection connection = new SqlConnection(connetion_string))
                 {
 
-                   
-                    byte[] file = File.ReadAllBytes(dest_file);
+                    // byte[] file = File.ReadAllBytes(dest_file);
 
-
-                    SqlCommand command = new SqlCommand("_pInsertIdentifiers", connection)
+                    SqlCommand command = new SqlCommand("_pInsertRegNo", connection)
                     {
                         CommandType = CommandType.StoredProcedure
                     };
-                    command.Parameters.AddWithValue("@cIdentifier", new_name);
-                    command.Parameters.AddWithValue("@nIdentifier", id);
+
                     command.Parameters.AddWithValue("@nIdDataBase", database_id);
-                    command.Parameters.AddWithValue("@cImage", dest_file);
-                    command.Parameters.AddWithValue("@cExtension", extension);
                     command.Parameters.AddWithValue("@nTypeDocId", type_id);
-                    command.Parameters.AddWithValue("@cParentIdentifier", parent);
-                    command.Parameters.AddWithValue("@bImage", file);
+
+                    command.Parameters.AddWithValue("@nRegNo", parent_no);
+                    command.Parameters.AddWithValue("@cRegNo", parent);
+                    command.Parameters.AddWithValue("@nNo", no);
+                    command.Parameters.AddWithValue("@cRegNoItem", new_name);
+                    command.Parameters.AddWithValue("@cExtension", extension);
+
+                    //command.Parameters.AddWithValue("@bImage", file);  // izbaceno ubacivanje slike u bazu
                     using (command)
                     {
                         command.Connection.Open();
@@ -305,8 +374,6 @@ namespace file_copy_and_rename
                     }
 
                 }
-
-
             }
         }
 
@@ -324,7 +391,7 @@ namespace file_copy_and_rename
                 DateTime date;
 
 
-                SqlCommand command = new SqlCommand("update [_tIdentityTable]  set " + escaped_column + "= @cValue where anId = @nId", connection);
+                SqlCommand command = new SqlCommand("update [_Registry]  set " + escaped_column + "= @cValue where anId = @nId", connection);
 
                 command.Parameters.AddWithValue("@nId", index);
                 command.Parameters.AddWithValue("@cColumn", column);
@@ -332,7 +399,8 @@ namespace file_copy_and_rename
                 {
                     command.Parameters.AddWithValue("@cValue", date);
                 }
-                else {
+                else
+                {
                     command.Parameters.AddWithValue("@cValue", value);
                 }
 
@@ -346,19 +414,44 @@ namespace file_copy_and_rename
             }
         }
 
-        public static void delete_scan(Config config, int index) {
+        public static void delete_scan(Config config, string reg_no)
+        {
 
             string connetion_string = get_connection_string(config);
 
             using (SqlConnection connection = new SqlConnection(connetion_string))
             {
 
-                SqlCommand command = new SqlCommand("delete from  [_tIdentityTable]  where anId = @nId", connection);
+                SqlCommand command = new SqlCommand("delete from  [_Registry]  where acRegNo =  @cRegNo", connection);
+                command.Parameters.AddWithValue("@cRegNo", reg_no);
 
-                command.Parameters.AddWithValue("@nId", index);
-
-                 using (command)
+                using (command)
                 {
+
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+
+                }
+
+            }
+
+        }
+
+
+        public static void delete_scan_item(Config config, int id )
+        {
+
+            string connetion_string = get_connection_string(config);
+
+            using (SqlConnection connection = new SqlConnection(connetion_string))
+            {
+
+                SqlCommand command = new SqlCommand("delete from  [_RegistryItem]  where anId =  @nId", connection);
+                command.Parameters.AddWithValue("@nId", id);
+
+                using (command)
+                {
+
                     command.Connection.Open();
                     command.ExecuteNonQuery();
 
@@ -377,6 +470,8 @@ namespace file_copy_and_rename
             string connetion_string = get_connection_string(config);
             SqlConnection connection = new SqlConnection(connetion_string);
 
+
+            // promeniti sql !!!
             using (SqlCommand command = new SqlCommand("select top 1 ltrim(rtrim(acExtension)) acExtension, abImage from _tIdentityTable where acIdentifier = @nId", connection))
             {
                 command.Parameters.AddWithValue("@nId", id);
@@ -422,7 +517,8 @@ namespace file_copy_and_rename
 
 
 
-        public static void export_data_table(DataTable datatable) {
+        public static void export_data_table(DataTable datatable)
+        {
 
             using (ExcelPackage pack = new ExcelPackage())
             {
@@ -432,7 +528,7 @@ namespace file_copy_and_rename
                 ws.Cells["F:F"].Style.Numberformat.Format = System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern;
                 ws.Cells.AutoFitColumns();
                 var ms = new MemoryStream();
-                pack.SaveAs(new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"knjiga_poste.xlsx")));
+                pack.SaveAs(new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "knjiga_poste.xlsx")));
             }
 
 
@@ -469,8 +565,51 @@ namespace file_copy_and_rename
         }
 
 
+        public static bool reg_item_exists(Config config, string reg_no)
+        {
+
+            DataTable data_table = null;
+            Image img = null;
+            string connetion_string = get_connection_string(config);
+            SqlConnection connection = new SqlConnection(connetion_string);
+
+            using (SqlCommand command = new SqlCommand("select 1 from _RegistryItem where acRegNo =  @cRegNo", connection))
+            {
+                command.Parameters.AddWithValue("@cRegNo", reg_no);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+
+                data_table = new DataTable();
+                adapter.Fill(data_table);
 
 
 
+            }
+
+            return (data_table.Rows.Count > 0);
+
+        }
+
+
+        public static string get_database_name(Config config, string reg_no) {
+
+
+            string result;
+            string connetion_string = get_connection_string(config);
+            SqlConnection connection = new SqlConnection(connetion_string);
+
+            using (SqlCommand command = new SqlCommand("select top 1 d.acDataBaseName from _Registry r inner join _tDataBases d on r.anIdDataBase = d.anId  where r.acRegNo =  @cRegNo", connection))
+            {
+                command.Parameters.AddWithValue("@cRegNo", reg_no);
+
+                command.Connection.Open();
+                result = (string)command.ExecuteScalar();
+
+
+            }
+            return result;
+
+        }
     }
+
 }
