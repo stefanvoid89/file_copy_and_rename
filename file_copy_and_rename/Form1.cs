@@ -4,18 +4,24 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace file_copy_and_rename
 {
     public partial class Form1 : Form
-    {
 
+
+
+
+    {
+        DataTable subjects = utils.fetch_subjects(config);
         static Config config = utils.fetch_configuration();
         DateTimePicker dtp;
         TextBox tb;
 
         DataSet ds_scanned;
+        bool cancelIt = false;
 
 
         public Form1()
@@ -94,6 +100,9 @@ namespace file_copy_and_rename
             ds_scanned.Relations.Add(relation);
 
 
+
+        
+
             dgv_scanned.DataSource = ds_scanned.Tables[0];
 
             if (dgv_scanned.Columns.Contains("Delete"))  dgv_scanned.Columns.Remove("Delete");
@@ -103,11 +112,26 @@ namespace file_copy_and_rename
                 delete_scanned.Text = "Obrisi zapis";
 
                 dgv_scanned.Columns.Insert(ds_scanned.Tables[0].Columns.Count, delete_scanned);
-            
 
-           
+
+
+
+            //((DataGridViewComboBoxColumn)dgv_scanned.Columns[4]).
+
+
+            //DataGridViewComboBoxColumn subject_column = new DataGridViewComboBoxColumn();
+            //subject_column.DataSource = subjects;
+            //subject_column.ValueMember = "acSubject";
+            //subject_column.DisplayMember = "acSubject";
+
+
+            //dgv_scanned.Columns.Insert(ds_scanned.Tables[0].Columns.Count + 1, subject_column);
+
+
+
             dgv_scanned_item.DataMember = "pc_relation";
             dgv_scanned_item.DataSource = ds_scanned.Tables[0];
+
 
             dgv_scanned_item.AllowUserToAddRows = false;
 
@@ -118,7 +142,11 @@ namespace file_copy_and_rename
                 delete_scanned_item.Name = "Delete";
                 delete_scanned_item.Text = "Obrisi zapis";
                 dgv_scanned_item.Columns.Insert(ds_scanned.Tables[1].Columns.Count, delete_scanned_item);
-            
+
+
+
+
+
 
 
             dgv_scanned.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -128,10 +156,13 @@ namespace file_copy_and_rename
 
 
             dgv_scanned.Columns[0].Visible = false;
-            dgv_scanned.Columns[1].Visible = false;
+            dgv_scanned.Columns[1].ReadOnly = true;
             dgv_scanned.Columns[2].ReadOnly = true;
             dgv_scanned.Columns[3].ReadOnly = true;
+
             //dgv_scanned.Columns[6].ReadOnly = true;
+
+
 
 
             dgv_scanned_item.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -147,16 +178,17 @@ namespace file_copy_and_rename
             dgv_scanned_item.Columns[4].ReadOnly = true;
 
 
-
+            dgv_scanned.Columns[1].Width = 40;
             dgv_scanned.Columns[2].Width = 200;
             dgv_scanned.Columns[3].Width = 150;
             dgv_scanned.Columns[4].Width = 200;
-            dgv_scanned.Columns[5].Width = 350;
-            dgv_scanned.Columns[6].Width = 150;
+            dgv_scanned.Columns[5].Width = 300;
+            dgv_scanned.Columns[6].Width = 100;
+            dgv_scanned.Columns[7].Width = 150;
 
 
             dgv_scanned.Columns[3].DefaultCellStyle.Format = "dd.MM.yyyy";
-            dgv_scanned.Columns[6].DefaultCellStyle.Format = "dd.MM.yyyy";
+            dgv_scanned.Columns[7].DefaultCellStyle.Format = "dd.MM.yyyy";
 
             dgv_scanned_item.Columns[4].DefaultCellStyle.Format = "dd.MM.yyyy";
 
@@ -228,7 +260,7 @@ namespace file_copy_and_rename
                     pictureBox1.Image = null;
                 }
 
-                //int database_id = int.Parse(cb_company_name_scann.SelectedValue.ToString());
+                cb_company_name_scann.SelectedValue = database_id;
                 load_and_fill_scanned_grids(database_id);
 
             }
@@ -314,16 +346,11 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 7 && e.RowIndex > -1)
+            if (e.ColumnIndex == 8 && e.RowIndex > -1)
             {
                 int index = dgv_scanned.CurrentCell.RowIndex;
                 string reg_no = dgv_scanned.Rows[index].Cells["Zaglavlje"].Value.ToString();
 
-                //string file = dgv_scanned.Rows[index].Cells[6].Value.ToString();
-                //string company = dgv_scanned.Rows[index].Cells[1].Value.ToString();
-                //string path = Path.Combine(config.Dest_dir, company, file);
-
-                //if (File.Exists(path)) MessageBox.Show("Ne mozete obristati zapis pre brisanja skeniranog dokumenta.");
 
                 if (utils.reg_item_exists(config, reg_no)) MessageBox.Show("Ne mozete obristati zapis, postoje vezana dokumenta.");
 
@@ -359,7 +386,7 @@ namespace file_copy_and_rename
             //}
 
 
-            if (e.ColumnIndex == 6 && e.RowIndex > -1)
+            if (e.ColumnIndex == 7 && e.RowIndex > -1)
             {
                 DateTime date;
                 dtp = new DateTimePicker();
@@ -465,7 +492,7 @@ namespace file_copy_and_rename
 
         void tb_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Escape)
+            if ((e.KeyCode == Keys.Escape) && (tb != null))
             {
                 tb.Visible = false;
             }
@@ -478,7 +505,7 @@ namespace file_copy_and_rename
 
         private void dgv_scanned_CellLeave(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 6 && e.RowIndex > -1)
+            if (e.ColumnIndex == 7 && e.RowIndex > -1)
             {
                 if(dtp != null)     dtp.Visible = false;
             }
@@ -502,7 +529,9 @@ namespace file_copy_and_rename
 
             if (e.ColumnIndex == 4) column = "acSubject";
             if (e.ColumnIndex == 5) column = "acNote";
-            if (e.ColumnIndex == 6) column = "adDateDoc";
+            if (e.ColumnIndex == 6) column = "anValue";
+            if (e.ColumnIndex == 7) column = "adDateDoc";
+            
 
 
             string value = dgv_scanned.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
@@ -510,7 +539,8 @@ namespace file_copy_and_rename
             if (column != "")
                 try
                 {
-                    utils.update_scan(config, id, column, value);
+
+                            utils.update_scan(config, id, column, value);
                 }
                 catch (Exception ex)
                 {
@@ -528,7 +558,20 @@ namespace file_copy_and_rename
 
         private void btn_export_Click(object sender, EventArgs e)
         {
-            utils.export_data_table((DataTable)dgv_scanned.DataSource);
+
+            string company = cb_company_name_scann.Text;
+            DataTable table = ((DataTable)dgv_scanned.DataSource).Copy();
+            table.Columns.Remove("anId");
+
+
+            string path = utils.export_data_table(table, company,config);
+
+
+            //MessageBox.Show(path);
+
+            Process.Start(path);
+
+
         }
 
         private void dgv_scanned_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -671,6 +714,69 @@ namespace file_copy_and_rename
         private void dgv_scanned_item_CellLeave(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void dgv_scanned_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+
+            string header = dgv_scanned.Columns[4].HeaderText;
+
+
+
+            if (header == "Subjekat")
+            {
+
+                TextBox textBox = e.Control as TextBox;
+                textBox.AutoCompleteMode = AutoCompleteMode.Suggest;
+                textBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+
+
+                AutoCompleteStringCollection subjects_autocomplete = new AutoCompleteStringCollection();
+
+                foreach (DataRow row in subjects.Rows)
+                {
+                    subjects_autocomplete.Add(Convert.ToString(row[0])); 
+                }
+
+
+                textBox.AutoCompleteCustomSource = subjects_autocomplete;
+
+            }
+        }
+
+        private void dgv_scanned_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            bool isValid = true;
+
+            if (e.ColumnIndex == 4)
+               
+            {
+                string value = e.FormattedValue.ToString();
+
+                DataRow rw = subjects.AsEnumerable().FirstOrDefault(tt => tt.Field<string>("acSubject") == value);
+                if (rw == null)
+                {
+                    isValid = false;
+                }
+
+
+                if (cancelIt && !isValid)
+                {
+                    MessageBox.Show("Nepostojeci subjekat!");
+                    e.Cancel = true;
+                    dgv_scanned.CancelEdit();
+                    dgv_scanned.EndEdit();
+                    cancelIt = false;
+                }
+
+
+            }
+
+        }
+
+        private void dgv_scanned_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            cancelIt = true;
         }
     }
 }

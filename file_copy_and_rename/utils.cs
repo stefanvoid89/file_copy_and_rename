@@ -1,5 +1,6 @@
 ﻿using Ghostscript.NET.Rasterizer;
 using OfficeOpenXml;
+using OfficeOpenXml.Table;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -52,6 +53,9 @@ namespace file_copy_and_rename
                             break;
                         case var this_param when new Regex(@"DEST_DIR=").IsMatch(this_param):
                             config.Dest_dir = this_param.Replace("DEST_DIR=", "");
+                            break;
+                        case var this_param when new Regex(@"EXPORT_DIR=").IsMatch(this_param):
+                            config.Export_dir = this_param.Replace("EXPORT_DIR=", "");
                             break;
                     }
                 }
@@ -136,6 +140,34 @@ namespace file_copy_and_rename
 
 
 
+
+        static public DataTable fetch_subjects(Config config)
+        {
+
+            DataTable data_table = null;
+
+            try
+            {
+                string connetion_string = get_connection_string(config);
+                using (SqlConnection connection = new SqlConnection(connetion_string))
+                using (SqlCommand command = new SqlCommand("select acSubject from _vhe_MegaSubjectView ", connection))
+                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                {
+                    data_table = new DataTable();
+                    adapter.Fill(data_table);
+                }
+            }
+
+            catch (Exception)
+            {
+                throw new Exception("Puca ovde");
+            }
+
+            return data_table;
+
+        }
+
+
         static public DataTable fetch_reg_no_by_companies(Config config, int company_id)
         {
 
@@ -206,7 +238,7 @@ namespace file_copy_and_rename
             string connetion_string = get_connection_string(config);
             SqlConnection connection = new SqlConnection(connetion_string);
 
-            string sql_query = "SELECT r.[anId] ,r.anRegNo,r.[acRegNo] as [Zaglavlje] ,r.[adDate] as Datum ,r.[acSubject] as Subjekat ,r.[acNote] as Napomena,r.[adDateDoc] as [Datum dokumenta] FROM [_Registry] r inner join _tDataBases d on r.anIdDataBase = d.anId ";
+            string sql_query = "SELECT r.[anId] ,r.anRegNo as [Red.Br],r.[acRegNo] as [Zaglavlje] ,r.[adDate] as Datum ,r.[acSubject] as Subjekat ,r.[acNote] as Napomena,r.anValue as Vrednost,r.[adDateDoc] as [Datum dokumenta] FROM [_Registry] r inner join _tDataBases d on r.anIdDataBase = d.anId";
 
             string filter = " where 1=1 ";
 
@@ -214,7 +246,7 @@ namespace file_copy_and_rename
 
             sql_query += filter;
 
-            sql_query += " order by d.acDataBaseName,r.[acRegNo]";
+            sql_query += " order by r.anIdDataBase,r.anid";
 
             using (SqlCommand command = new SqlCommand(sql_query, connection))
             {
@@ -515,9 +547,7 @@ namespace file_copy_and_rename
         }
 
 
-
-
-        public static void export_data_table(DataTable datatable)
+        public static string export_data_table(DataTable datatable, string company, Config config)
         {
 
             using (ExcelPackage pack = new ExcelPackage())
@@ -525,10 +555,34 @@ namespace file_copy_and_rename
                 ExcelWorksheet ws = pack.Workbook.Worksheets.Add("Knjiga poste");
                 ws.Cells["A1"].LoadFromDataTable(datatable, true);
                 ws.Cells["C:C"].Style.Numberformat.Format = System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern;
-                ws.Cells["F:F"].Style.Numberformat.Format = System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern;
+                ws.Cells["G:G"].Style.Numberformat.Format = System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern;
+
+                ws.Cells["F:F"].Style.Numberformat.Format = "#,##0.00";
                 ws.Cells.AutoFitColumns();
+
+
+                int firstRow = 1;
+                int lastRow = ws.Dimension.End.Row;
+                int firstColumn = 1;
+                int lastColumn = ws.Dimension.End.Column;
+                ExcelRange rg = ws.Cells[firstRow, firstColumn, lastRow, lastColumn];
+                string tableName = "Table1";
+
+                //Ading a table to a Range
+                ExcelTable tab = ws.Tables.Add(rg, tableName);
+
+                //Formating the table style
+                tab.TableStyle = TableStyles.Medium20;
+
+                string company_without_spaces = company.Replace(" ", "_");
+
+                string name = "DELOVODNA_KNJIGA_" + company_without_spaces + "_"+ DateTime.Now.ToString("dd_MM_yyyy") + ".xlsx";
+
+                string export_path = config.Export_dir;
+
                 var ms = new MemoryStream();
-                pack.SaveAs(new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "knjiga_poste.xlsx")));
+                pack.SaveAs(new FileInfo(Path.Combine(export_path, name)));
+                return Path.Combine(export_path, name);
             }
 
 

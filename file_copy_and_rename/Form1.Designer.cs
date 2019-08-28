@@ -28,10 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.cb_regno = new System.Windows.Forms.ComboBox();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.cb_type = new System.Windows.Forms.ComboBox();
+            this.rb_add = new System.Windows.Forms.RadioButton();
+            this.rb_new = new System.Windows.Forms.RadioButton();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.dgv_files = new System.Windows.Forms.DataGridView();
@@ -39,26 +43,23 @@
             this.btn_populate_grid = new System.Windows.Forms.Button();
             this.cb_company_name = new System.Windows.Forms.ComboBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
+            this.cb_company_name_scann = new System.Windows.Forms.ComboBox();
             this.btn_export = new System.Windows.Forms.Button();
             this.btn_refresh = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.dgv_scanned_item = new System.Windows.Forms.DataGridView();
             this.dgv_scanned = new System.Windows.Forms.DataGridView();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.cb_regno = new System.Windows.Forms.ComboBox();
-            this.rb_new = new System.Windows.Forms.RadioButton();
-            this.rb_add = new System.Windows.Forms.RadioButton();
-            this.dgv_scanned_item = new System.Windows.Forms.DataGridView();
-            this.cb_company_name_scann = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.tabPage1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_files)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.panel4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned_item)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned)).BeginInit();
             this.tabControl1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned_item)).BeginInit();
             this.SuspendLayout();
             // 
             // tabPage1
@@ -82,6 +83,16 @@
             this.tabPage1.Text = "Unos skeniranih dokumenata";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // cb_regno
+            // 
+            this.cb_regno.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cb_regno.FormattingEnabled = true;
+            this.cb_regno.Location = new System.Drawing.Point(122, 81);
+            this.cb_regno.Name = "cb_regno";
+            this.cb_regno.Size = new System.Drawing.Size(220, 21);
+            this.cb_regno.TabIndex = 12;
+            this.cb_regno.Enter += new System.EventHandler(this.cb_regno_Enter);
+            // 
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
@@ -93,15 +104,6 @@
             this.checkBox2.UseVisualStyleBackColor = true;
             this.checkBox2.Enter += new System.EventHandler(this.checkBox2_Enter);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(58, 13);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Preduzece";
-            // 
             // cb_type
             // 
             this.cb_type.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -111,6 +113,39 @@
             this.cb_type.Size = new System.Drawing.Size(220, 21);
             this.cb_type.TabIndex = 7;
             this.cb_type.Enter += new System.EventHandler(this.cb_type_Enter);
+            // 
+            // rb_add
+            // 
+            this.rb_add.AutoSize = true;
+            this.rb_add.Location = new System.Drawing.Point(9, 81);
+            this.rb_add.Name = "rb_add";
+            this.rb_add.Size = new System.Drawing.Size(109, 17);
+            this.rb_add.TabIndex = 15;
+            this.rb_add.Text = "Dodaj dokumentu";
+            this.rb_add.UseVisualStyleBackColor = true;
+            this.rb_add.CheckedChanged += new System.EventHandler(this.rb_add_CheckedChanged);
+            // 
+            // rb_new
+            // 
+            this.rb_new.AutoSize = true;
+            this.rb_new.Checked = true;
+            this.rb_new.Location = new System.Drawing.Point(9, 39);
+            this.rb_new.Name = "rb_new";
+            this.rb_new.Size = new System.Drawing.Size(97, 17);
+            this.rb_new.TabIndex = 12;
+            this.rb_new.TabStop = true;
+            this.rb_new.Text = "Novi dokument";
+            this.rb_new.UseVisualStyleBackColor = true;
+            this.rb_new.CheckedChanged += new System.EventHandler(this.rb_new_CheckedChanged);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(58, 13);
+            this.label1.TabIndex = 8;
+            this.label1.Text = "Preduzece";
             // 
             // panel2
             // 
@@ -189,6 +224,24 @@
             this.tabPage2.Text = "Pregled";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 631);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(58, 13);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "Preduzece";
+            // 
+            // cb_company_name_scann
+            // 
+            this.cb_company_name_scann.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cb_company_name_scann.FormattingEnabled = true;
+            this.cb_company_name_scann.Location = new System.Drawing.Point(70, 628);
+            this.cb_company_name_scann.Name = "cb_company_name_scann";
+            this.cb_company_name_scann.Size = new System.Drawing.Size(220, 21);
+            this.cb_company_name_scann.TabIndex = 7;
+            // 
             // btn_export
             // 
             this.btn_export.Location = new System.Drawing.Point(1047, 622);
@@ -219,72 +272,6 @@
             this.panel4.Size = new System.Drawing.Size(1296, 613);
             this.panel4.TabIndex = 6;
             // 
-            // dgv_scanned
-            // 
-            this.dgv_scanned.AllowUserToAddRows = false;
-            this.dgv_scanned.AllowUserToOrderColumns = true;
-            this.dgv_scanned.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            this.dgv_scanned.BackgroundColor = System.Drawing.SystemColors.InactiveBorder;
-            this.dgv_scanned.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.dgv_scanned.Cursor = System.Windows.Forms.Cursors.Default;
-            this.dgv_scanned.Dock = System.Windows.Forms.DockStyle.Top;
-            this.dgv_scanned.GridColor = System.Drawing.SystemColors.AppWorkspace;
-            this.dgv_scanned.Location = new System.Drawing.Point(0, 0);
-            this.dgv_scanned.MultiSelect = false;
-            this.dgv_scanned.Name = "dgv_scanned";
-            this.dgv_scanned.Size = new System.Drawing.Size(1296, 392);
-            this.dgv_scanned.TabIndex = 0;
-            this.dgv_scanned.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellClick);
-            this.dgv_scanned.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellDoubleClick);
-            this.dgv_scanned.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellLeave);
-            this.dgv_scanned.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellValueChanged);
-            // 
-            // tabControl1
-            // 
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Location = new System.Drawing.Point(12, 12);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1310, 716);
-            this.tabControl1.TabIndex = 6;
-            // 
-            // cb_regno
-            // 
-            this.cb_regno.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_regno.FormattingEnabled = true;
-            this.cb_regno.Location = new System.Drawing.Point(122, 81);
-            this.cb_regno.Name = "cb_regno";
-            this.cb_regno.Size = new System.Drawing.Size(220, 21);
-            this.cb_regno.TabIndex = 12;
-            this.cb_regno.Enter += new System.EventHandler(this.cb_regno_Enter);
-            // 
-            // rb_new
-            // 
-            this.rb_new.AutoSize = true;
-            this.rb_new.Checked = true;
-            this.rb_new.Location = new System.Drawing.Point(9, 39);
-            this.rb_new.Name = "rb_new";
-            this.rb_new.Size = new System.Drawing.Size(97, 17);
-            this.rb_new.TabIndex = 12;
-            this.rb_new.TabStop = true;
-            this.rb_new.Text = "Novi dokument";
-            this.rb_new.UseVisualStyleBackColor = true;
-            this.rb_new.CheckedChanged += new System.EventHandler(this.rb_new_CheckedChanged);
-            // 
-            // rb_add
-            // 
-            this.rb_add.AutoSize = true;
-            this.rb_add.Location = new System.Drawing.Point(9, 81);
-            this.rb_add.Name = "rb_add";
-            this.rb_add.Size = new System.Drawing.Size(109, 17);
-            this.rb_add.TabIndex = 15;
-            this.rb_add.Text = "Dodaj dokumentu";
-            this.rb_add.UseVisualStyleBackColor = true;
-            this.rb_add.CheckedChanged += new System.EventHandler(this.rb_add_CheckedChanged);
-            // 
             // dgv_scanned_item
             // 
             this.dgv_scanned_item.BackgroundColor = System.Drawing.SystemColors.InactiveBorder;
@@ -300,23 +287,40 @@
             this.dgv_scanned_item.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_item_CellLeave);
             this.dgv_scanned_item.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_item_CellValueChanged);
             // 
-            // cb_company_name_scann
+            // dgv_scanned
             // 
-            this.cb_company_name_scann.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_company_name_scann.FormattingEnabled = true;
-            this.cb_company_name_scann.Location = new System.Drawing.Point(70, 628);
-            this.cb_company_name_scann.Name = "cb_company_name_scann";
-            this.cb_company_name_scann.Size = new System.Drawing.Size(220, 21);
-            this.cb_company_name_scann.TabIndex = 7;
+            this.dgv_scanned.AllowUserToAddRows = false;
+            this.dgv_scanned.AllowUserToOrderColumns = true;
+            this.dgv_scanned.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.dgv_scanned.BackgroundColor = System.Drawing.SystemColors.InactiveBorder;
+            this.dgv_scanned.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.dgv_scanned.Cursor = System.Windows.Forms.Cursors.Default;
+            this.dgv_scanned.Dock = System.Windows.Forms.DockStyle.Top;
+            this.dgv_scanned.GridColor = System.Drawing.SystemColors.AppWorkspace;
+            this.dgv_scanned.Location = new System.Drawing.Point(0, 0);
+            this.dgv_scanned.MultiSelect = false;
+            this.dgv_scanned.Name = "dgv_scanned";
+            this.dgv_scanned.Size = new System.Drawing.Size(1296, 392);
+            this.dgv_scanned.TabIndex = 0;
+            this.dgv_scanned.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgv_scanned_CellBeginEdit);
+            this.dgv_scanned.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellClick);
+            this.dgv_scanned.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellDoubleClick);
+            this.dgv_scanned.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellLeave);
+            this.dgv_scanned.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dgv_scanned_CellValidating);
+            this.dgv_scanned.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_scanned_CellValueChanged);
+            this.dgv_scanned.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.dgv_scanned_EditingControlShowing);
             // 
-            // label2
+            // tabControl1
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 631);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(58, 13);
-            this.label2.TabIndex = 9;
-            this.label2.Text = "Preduzece";
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Location = new System.Drawing.Point(12, 12);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(1310, 716);
+            this.tabControl1.TabIndex = 6;
             // 
             // Form1
             // 
@@ -324,9 +328,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1349, 698);
             this.Controls.Add(this.tabControl1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "Knjiga poste";
+            this.Text = "DELOVODNA KNJIGA";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
@@ -337,9 +342,9 @@
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.panel4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned_item)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned)).EndInit();
             this.tabControl1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dgv_scanned_item)).EndInit();
             this.ResumeLayout(false);
 
         }
